@@ -5,7 +5,7 @@ channels:
 dependencies:
   - numpy
   - scipy
-  - pytorch
+  - pytorch==1.10.0+cpu
   - torchvision
   - cpuonly  # only for binder
   - matplotlib
