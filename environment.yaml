@@ -1,0 +1,9 @@
+channels:
+  - conda-forge
+dependencies:
+  - numpy==1.20.2
+  - scipy==1.6.2
+  - torch==1.10.0
+  - matplotlib==3.4.3
+  - pip:
+    - opencv-python
