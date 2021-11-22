@@ -12,3 +12,4 @@ dependencies:
   - pip
   - pip:
     - opencv-python
+    - git+https://github.com/openai/CLIP.git
