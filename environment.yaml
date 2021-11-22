@@ -1,3 +1,4 @@
+name: clipseg-environment
 channels:
   - conda-forge
 dependencies:
@@ -5,5 +6,6 @@ dependencies:
   - scipy==1.6.2
   - torch==1.10.0
   - matplotlib==3.4.3
+  - pip
   - pip:
     - opencv-python
