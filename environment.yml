@@ -6,6 +6,7 @@ dependencies:
   - numpy
   - scipy
   - pytorch
+  - torchvision
   - matplotlib
   - pip
   - pip:
