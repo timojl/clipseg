@@ -1,6 +1,7 @@
 name: clipseg-environment
 channels:
   - conda-forge
+  - pytorch
 dependencies:
   - numpy
   - scipy
