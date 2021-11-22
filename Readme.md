@@ -8,6 +8,8 @@ Additional dependencies are hidden for double blind review.
 
 ### Quick Start
 
+https://mybinder.org/v2/gh/timojl/clipseg/HEAD
+
 ```python
 from models.clipseg import CLIPDensePredT
 from PIL import Image
