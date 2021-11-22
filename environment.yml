@@ -5,7 +5,7 @@ channels:
 dependencies:
   - numpy
   - scipy
-  - torch
+  - pytorch
   - matplotlib
   - pip
   - pip:
