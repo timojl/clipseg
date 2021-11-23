@@ -5,13 +5,14 @@ channels:
 dependencies:
   - numpy
   - scipy
-  #- pytorch
-  #- torchvision
-  #- cpuonly  # only for binder
+#  - pytorch==1.10.0+cpu
+#  - torchvision
+#  - cpuonly  # only for binder
   - matplotlib
   - pip
   - pip:
-    - opencv-python
+    - --find-links https://download.pytorch.org/whl/torch_stable.html
     - torch==1.10.0+cpu
-    - torchvision==0.11.1+cpu
+    - torchvision==0.11.1+cpu    
+    - opencv-python
     - git+https://github.com/openai/CLIP.git

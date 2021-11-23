@@ -8,9 +8,7 @@ Additional dependencies are hidden for double blind review.
 
 ### Quick Start
 
-Use `Quickstart.ipynb` to see a minimal example for inference using a pre-trained CLIPSeg model.
-You can also try a live version on [MyBinder](https://mybinder.org/v2/gh/timojl/clipseg/HEAD) 
-(this runs on a small CPU-only VM with only 2GB of RAM).
+We provide binder notebook. 
 
 
 ### Datasets
