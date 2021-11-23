@@ -1,0 +1,2 @@
+weights/rd16-uni.pth filter=lfs diff=lfs merge=lfs -text
+weights/rd64-uni.pth filter=lfs diff=lfs merge=lfs -text
