@@ -10,7 +10,7 @@ Additional dependencies are hidden for double blind review.
 
 In the `Quickstart.ipynb` notebook we provide the code for using a pre-trained CLIPSeg model.
 It can also be used interactively using [MyBinder](https://mybinder.org/v2/gh/timojl/clipseg/HEAD?labpath=Quickstart.ipynb)
-(please note that the VM is only supports CPU inference, thus inference takes a few seconds).
+(please note that the VM does not use a GPU, thus inference takes a few seconds).
 
 
 ### Datasets

@@ -292,6 +292,7 @@ class PhraseCut(object):
                     vis_s = label_add + [masked_img_s, True]
                 
             else:
+                # phrase is unique
                 vis_s = torch.zeros_like(img)
 
                 if self.mask in {'separate', 'text_and_separate'}:
@@ -302,6 +303,7 @@ class PhraseCut(object):
                 else:
                     vis_s = [vis_s, False]
         else:
+            assert self.mask == 'text'
             vis_s = [phrase]
         
         seg = seg.unsqueeze(0).float()

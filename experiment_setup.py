@@ -263,7 +263,6 @@ def train_loop(config):
                     logger.stop()
                     return
                     
-
                 if config.checkpoint_iterations is not None and i in config.checkpoint_iterations:
                     logger.save_weights(only_trainable=save_only_trainable, weight_file=f'weights_{i}.pth')
 
