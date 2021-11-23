@@ -8,39 +8,9 @@ Additional dependencies are hidden for double blind review.
 
 ### Quick Start
 
-https://mybinder.org/v2/gh/timojl/clipseg/HEAD
-
-```python
-from models.clipseg import CLIPDensePredT
-from PIL import Image
-from torchvision import transforms
-from matplotlib import pyplot as plt
-
-# load model
-model = CLIPDensePredT()
-model.eval()
-# non-strict, because we only stored decoder weights (not CLIP weights)
-p.load_state_dict(torch.load('logs/rd64-uni/weights.pth'), strict=False)
-
-# load and normalize image
-input_image = Image.open('example_image.jpg')
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    transforms.Resize((352, 352)),
-])
-img = transform(input_image).unsqueeze(0)
-
-# predict
-with torch.no_grad():
-    preds = p(img_in.repeat(4,1,1,1), ['a glass', 'cutlery', 'wood', 'a jar'])[0]
-
-# visualize prediction
-_, ax = plt.subplots(1, 5)
-[a.axis('off') for a in ax.flatten()]
-ax[0].imshow(input_image)
-[ax[i+1].imshow(torch.sigmoid(preds[i][0])) for i in range(4)]
-```
+Use `Quickstart.ipynb` to see a minimal example for inference using a pre-trained CLIPSeg model.
+You can also try a live version on [MyBinder](https://mybinder.org/v2/gh/timojl/clipseg/HEAD) 
+(this runs on a small CPU-only VM with only 2GB of RAM).
 
 
 ### Datasets
