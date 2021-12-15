@@ -32,15 +32,17 @@ Additional dependencies are hidden for double blind review.
 * `ViTDensePredT`: CLIPSeg model with transformer-based decoder.
 
 ### Third Party Dependencies
-For some of the datasets third party dependencies are required. Run the following commands in the `third_party` folder.
-`git clone https://github.com/cvlab-yonsei/JoEm`
-`git clone https://github.com/Jia-Research-Lab/PFENet.git`
-`git clone https://github.com/ChenyunWu/PhraseCutDataset.git`
-`git clone https://github.com/juhongm999/hsnet.git`
+For some of the datasets third party dependencies are required. Run the following commands in the `third_party` folder.  
+```bash
+git clone https://github.com/cvlab-yonsei/JoEm
+git clone https://github.com/Jia-Research-Lab/PFENet.git
+git clone https://github.com/ChenyunWu/PhraseCutDataset.git
+git clone https://github.com/juhongm999/hsnet.git
+```
 
 ### Weights
 - [CLIPSeg-D64](https://github.com/timojl/clipseg/raw/master/weights/rd64-uni.pth) (4.1MB, without CLIP weights)
-- [CLIPSeg-D16](https://github.com/timojl/clipseg/raw/master/weights/rd16-uni.pth)
+- [CLIPSeg-D16](https://github.com/timojl/clipseg/raw/master/weights/rd16-uni.pth) (1.1MB, without CLIP weights)
 
 ### Training
 
