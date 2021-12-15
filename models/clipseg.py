@@ -106,7 +106,7 @@ def forward_multihead_attention(x, b, with_aff=False, attn_mask=None):
 
 class CLIPDenseBase(nn.Module):
 
-    def __init__(self, version, reduce_cond, reduce_dim, prompt):
+    def __init__(self, version, reduce_cond, reduce_dim, prompt, n_tokens):
         super().__init__()
 
         import clip
@@ -114,6 +114,9 @@ class CLIPDenseBase(nn.Module):
         # prec = torch.FloatTensor
         self.clip_model, _ = clip.load(version, device='cpu', jit=False)
         self.model = self.clip_model.visual
+
+        # if not None, scale conv weights such that we obtain n_tokens.
+        self.n_tokens = n_tokens
 
         for p in self.clip_model.parameters():
             p.requires_grad_(False)
@@ -150,8 +153,18 @@ class CLIPDenseBase(nn.Module):
 
     def visual_forward(self, x_inp, extract_layers=(), skip=False, mask=None):
         
+
         with torch.no_grad():
-            x = self.model.conv1(x_inp)  # shape = [*, width, grid, grid]
+
+            inp_size = x_inp.shape[2:]
+
+            if self.n_tokens is not None:
+                stride2 = x_inp.shape[2] // self.n_tokens
+                conv_weight2 = nnf.interpolate(self.model.conv1.weight, (stride2, stride2), mode='bilinear', align_corners=True)
+                x = nnf.conv2d(x_inp, conv_weight2, bias=self.model.conv1.bias, stride=stride2, dilation=self.model.conv1.dilation)
+            else:
+                x = self.model.conv1(x_inp)  # shape = [*, width, grid, grid]
+
             x = x.reshape(x.shape[0], x.shape[1], -1)  # shape = [*, width, grid ** 2]
             x = x.permute(0, 2, 1)  # shape = [*, grid ** 2, width]
 
@@ -189,6 +202,10 @@ class CLIPDenseBase(nn.Module):
 
                 if i in extract_layers:
                     affinities += [aff_per_head]
+
+                    #if self.n_tokens is not None:
+                    #    activations += [nnf.interpolate(x, inp_size, mode='bilinear', align_corners=True)]
+                    #else:
                     activations += [x]
 
                 if len(extract_layers) > 0 and i == max(extract_layers) and skip:
@@ -283,16 +300,16 @@ class CLIPDensePredT(CLIPDenseBase):
     def __init__(self, version='ViT-B/32', extract_layers=(3, 6, 9), cond_layer=0, reduce_dim=128, n_heads=4, prompt='fixed', 
                  extra_blocks=0, reduce_cond=None, fix_shift=False,
                  learn_trans_conv_only=False,  limit_to_clip_only=False, upsample=False, 
-                 add_calibration=False, rev_actionvations=False, process_cond=None, not_pretrained=False):
+                 add_calibration=False, rev_activations=False, trans_conv=None, n_tokens=None):
         
-        super().__init__(version, reduce_cond, reduce_dim, prompt)
+        super().__init__(version, reduce_cond, reduce_dim, prompt, n_tokens)
         # device = 'cpu'
 
         self.extract_layers = extract_layers
         self.cond_layer = cond_layer
         self.limit_to_clip_only = limit_to_clip_only
         self.process_cond = None
-        self.rev_activations = None
+        self.rev_activations = rev_activations
         
         depth = len(extract_layers)
 
@@ -314,7 +331,12 @@ class CLIPDensePredT(CLIPDenseBase):
         else:
             self.shift_vector = None
 
-        trans_conv_ks = {'ViT-B/32': (32, 32), 'ViT-B/16': (16, 16)}[version]
+        if trans_conv is None:
+            trans_conv_ks = {'ViT-B/32': (32, 32), 'ViT-B/16': (16, 16)}[version]
+        else:
+            # explicitly define transposed conv kernel size
+            trans_conv_ks = (trans_conv, trans_conv)
+
         self.trans_conv = nn.ConvTranspose2d(reduce_dim, 1, trans_conv_ks, stride=trans_conv_ks)
         
         assert len(self.extract_layers) == depth
@@ -382,7 +404,11 @@ class CLIPDensePredT(CLIPDenseBase):
         size = int(math.sqrt(a.shape[2]))
 
         a = a.view(bs, a.shape[1], size, size)
+
         a = self.trans_conv(a)
+
+        if self.n_tokens is not None:
+            a = nnf.interpolate(a, x_inp.shape[2:], mode='bilinear', align_corners=True) 
 
         if self.upsample_proj is not None:
             a = self.upsample_proj(a)
@@ -399,13 +425,13 @@ class CLIPDensePredTMasked(CLIPDensePredT):
 
     def __init__(self, version='ViT-B/32', extract_layers=(3, 6, 9), cond_layer=0, reduce_dim=128, n_heads=4, 
                  prompt='fixed', extra_blocks=0, reduce_cond=None, fix_shift=False, learn_trans_conv_only=False, 
-                 refine=None, limit_to_clip_only=False, upsample=False, add_calibration=False, process_cond=None):
+                 refine=None, limit_to_clip_only=False, upsample=False, add_calibration=False, n_tokens=None):
 
         super().__init__(version=version, extract_layers=extract_layers, cond_layer=cond_layer, reduce_dim=reduce_dim, 
                          n_heads=n_heads, prompt=prompt, extra_blocks=extra_blocks, reduce_cond=reduce_cond, 
                          fix_shift=fix_shift, learn_trans_conv_only=learn_trans_conv_only,
                          limit_to_clip_only=limit_to_clip_only, upsample=upsample, add_calibration=add_calibration,
-                         process_cond=process_cond)
+                         n_tokens=n_tokens)
 
     def visual_forward_masked(self, img_s, seg_s):
         return super().visual_forward(img_s, mask=('all', 'cls_token', seg_s))
@@ -428,9 +454,9 @@ class CLIPDenseBaseline(CLIPDenseBase):
 
     def __init__(self, version='ViT-B/32', cond_layer=0, 
                 extract_layer=9, reduce_dim=128, reduce2_dim=None, prompt='fixed', 
-                 reduce_cond=None, limit_to_clip_only=False):
+                 reduce_cond=None, limit_to_clip_only=False, n_tokens=None):
         
-        super().__init__(version, reduce_cond, reduce_dim, prompt)
+        super().__init__(version, reduce_cond, reduce_dim, prompt, n_tokens)
         device = 'cpu'
 
         # self.cond_layer = cond_layer

@@ -337,7 +337,7 @@ def score(config, train_checkpoint_id, train_config):
         metric_args['resize_to'] = config.resize_to
 
     if 'sigmoid' in config:
-        metric_args['sigmoid'] = config.sigmoid
+        metric_args['sigmoid'] = config.sigmoid    
 
     if 'custom_threshold' in config:
         metric_args['custom_threshold'] = config.custom_threshold     
@@ -449,6 +449,7 @@ def score(config, train_checkpoint_id, train_config):
 
         only_visual = config.only_visual is not None and config.only_visual
         with_visual = config.with_visual is not None and config.with_visual
+
         dataset = PhraseCut('test', 
                             image_size=train_config.image_size,
                             mask=config.mask, 

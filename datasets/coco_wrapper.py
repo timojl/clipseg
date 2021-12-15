@@ -51,7 +51,7 @@ class COCOWrapper(object):
             transforms.Normalize(mean, std)
         ])
 
-        self.coco = DatasetCOCO('/user/tluedde/datasets/COCO-20i/', fold, transform, split, 1, False)
+        self.coco = DatasetCOCO(expanduser('~/datasets/COCO-20i/'), fold, transform, split, 1, False)
     
         self.all_classes = [self.coco.class_ids]
         self.coco.base_path = join(expanduser('~/datasets/COCO-20i'))
