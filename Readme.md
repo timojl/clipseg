@@ -54,12 +54,11 @@ In order to use the dataset and model wrappers for PFENet, the PFENet repository
 `git clone https://github.com/Jia-Research-Lab/PFENet.git `
 
 ### Citation
-
 ```
 @article{lueddecke21
     title={Image Segmentation Using Text and Image Prompts},
     author={Timo Lüddecke and Alexander Ecker},
-    journal={...},
+    journal={arXiv preprint arXiv:2112.10003},
     year={2021}
 }
 ```
