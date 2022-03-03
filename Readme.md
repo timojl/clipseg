@@ -1,6 +1,8 @@
 # Prompt-Based Multi-Modal Image Segmentation
 This repository contains the code used in the paper "Prompt-Based Multi-Modal Image Segmentation".
 
+**Update 02.03.: The Paper has been accepted to CVPR 2022!**
+
 <img src="overview.png" alt="drawing" height="200em"/>
 
 The systems allows to create segmentation models without training based on:
