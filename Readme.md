@@ -1,5 +1,5 @@
-# Prompt-Based Multi-Modal Image Segmentation
-This repository contains the code used in the paper "Prompt-Based Multi-Modal Image Segmentation".
+# Image Segmentation Using Text and Image Prompts
+This repository contains the code used in the paper "Image Segmentation Using Text and Image Prompts".
 
 **Update 02.03.: The Paper has been accepted to CVPR 2022!**
 
