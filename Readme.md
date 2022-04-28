@@ -1,6 +1,8 @@
 # Image Segmentation Using Text and Image Prompts
 This repository contains the code used in the paper ["Image Segmentation Using Text and Image Prompts"](https://arxiv.org/abs/2112.10003).
 
+**Update 02.03.: The Paper has been accepted to CVPR 2022!**
+
 <img src="overview.png" alt="drawing" height="200em"/>
 
 The systems allows to create segmentation models without training based on:
@@ -59,7 +61,7 @@ In order to use the dataset and model wrappers for PFENet, the PFENet repository
 ### Citation
 ```
 @article{lueddecke21
-    title={Image Segmentation Using Text and Image Prompts},
+    title={Prompt-Based Multi-Modal Image Segmentation},
     author={Timo Lüddecke and Alexander Ecker},
     journal={arXiv preprint arXiv:2112.10003},
     year={2021}
