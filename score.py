@@ -154,9 +154,7 @@ def score(config, train_checkpoint_id, train_config):
     metric_args = dict()
 
     if 'threshold' in config:
-        if config.metric.split('.')[-1] == 'BinaryIoU': 
-            metric_args['thresholds'] = (config.threshold, 0.5)
-        elif config.metric.split('.')[-1] == 'SkLearnMetrics':
+        if config.metric.split('.')[-1] == 'SkLearnMetrics':
             metric_args['threshold'] = config.threshold
 
     if 'resize_to' in config:

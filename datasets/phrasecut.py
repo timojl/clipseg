@@ -1,5 +1,4 @@
 
-from madpack.transforms.spatial import random_crop_slices
 import torch
 import numpy as np
 import os
@@ -14,7 +13,17 @@ from torch.nn import functional as nnf
 from general_utils import get_from_repository
 
 from skimage.draw import polygon2mask
-from madpack.transforms import random_crop_slices
+
+
+
+def random_crop_slices(origin_size, target_size):
+    """Gets slices of a random crop. """
+    assert origin_size[0] >= target_size[0] and origin_size[1] >= target_size[1], f'actual size: {origin_size}, target size: {target_size}'
+
+    offset_y = torch.randint(0, origin_size[0] - target_size[0] + 1, (1,)).item()  # range: 0 <= value < high
+    offset_x = torch.randint(0, origin_size[1] - target_size[1] + 1, (1,)).item()
+
+    return slice(offset_y, offset_y + target_size[0]), slice(offset_x, offset_x + target_size[1])
 
 
 def find_crop(seg, image_size, iterations=1000, min_frac=None, best_of=None):

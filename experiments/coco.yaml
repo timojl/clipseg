@@ -4,9 +4,6 @@ configuration:
 
   lr: 0.001
 
-  val_metric_class: metrics.BinaryIoU
-  use_val_metric: BIoU_fg
-
   trainer: experiment_setup.train_loop
   scorer: experiment_setup.score
   model: models.clipseg.CLIPDensePredT
