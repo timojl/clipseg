@@ -7,9 +7,9 @@ from datasets.lvis_oneshot3 import blend_image_segmentation
 from general_utils import log
 from torchvision import transforms
 
-# PASCAL_VOC_CLASSES_ZS = [['cattle.n.01', 'motorcycle.n.01'], ['aeroplane.n.01', 'sofa.n.01'], 
-#                          ['cat.n.01', 'television.n.03'], ['train.n.01', 'bottle.n.01'],
-#                           ['chair.n.01', 'pot_plant.n.01']]
+PASCAL_VOC_CLASSES_ZS = [['cattle.n.01', 'motorcycle.n.01'], ['aeroplane.n.01', 'sofa.n.01'], 
+                         ['cat.n.01', 'television.n.03'], ['train.n.01', 'bottle.n.01'],
+                          ['chair.n.01', 'pot_plant.n.01']]
 
 
 class PascalZeroShot(object):

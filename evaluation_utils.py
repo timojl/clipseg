@@ -29,6 +29,7 @@ def norm(img):
     std = torch.Tensor([0.229, 0.224, 0.225])
     return (img - mean[:,None,None]) / std[:,None,None]
 
+
 def compute_shift(name, w, datasets, size=1, seed=1):
     
     if type(name) == str:

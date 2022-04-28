@@ -2,6 +2,8 @@ import json
 import inspect
 import torch
 import os
+import sys
+import yaml
 from shutil import copy, copytree
 from os.path import join, dirname, realpath, expanduser, isfile, isdir, basename
 
@@ -12,6 +14,41 @@ class Logger(object):
         return print
 
 log = Logger()
+
+def training_config_from_cli_args():
+    experiment_name = sys.argv[1]
+    experiment_id = int(sys.argv[2])
+
+    yaml_config = yaml.load(open(f'experiments/{experiment_name}'), Loader=yaml.SafeLoader)
+
+    config = yaml_config['configuration']
+    config = {**config, **yaml_config['individual_configurations'][experiment_id]}
+    config = AttributeDict(config)
+    return config
+
+
+def score_config_from_cli_args():
+    experiment_name = sys.argv[1]
+    experiment_id = int(sys.argv[2])
+    
+
+    yaml_config = yaml.load(open(f'experiments/{experiment_name}'), Loader=yaml.SafeLoader)
+
+    config = yaml_config['test_configuration_common']
+
+    if type(yaml_config['test_configuration']) == list:
+        test_id = int(sys.argv[3])
+        config = {**config, **yaml_config['test_configuration'][test_id]}
+    else:
+        config = {**config, **yaml_config['test_configuration']}
+
+    if 'test_configuration' in yaml_config['individual_configurations'][experiment_id]:
+        config = {**config, **yaml_config['individual_configurations'][experiment_id]['test_configuration']}
+
+    train_checkpoint_id = yaml_config['individual_configurations'][experiment_id]['name']
+
+    config = AttributeDict(config)
+    return config, train_checkpoint_id
 
 
 def get_from_repository(local_name, repo_files, integrity_check=None, repo_dir='~/dataset_repository', 
@@ -197,13 +234,21 @@ def load_model(checkpoint_id, weights_file=None, strict=True, model_args='from_c
 
 class TrainingLogger(object):
 
-    def __init__(self, model, log_dir, *args):
+    def __init__(self, model, log_dir, config=None, *args):
         super().__init__()
         self.model = model
         self.base_path = join(f'logs/{log_dir}') if log_dir is not None else None
 
-    def iter(self, i):
-        pass
+        os.makedirs('logs/', exist_ok=True)
+        os.makedirs(self.base_path, exist_ok=True)
+
+        if config is not None:
+            json.dump(config, open(join(self.base_path, 'config.json'), 'w'))
+
+    def iter(self, i, **kwargs):
+        if i % 100 == 0 and 'loss' in kwargs:
+            loss = kwargs['loss']
+            print(f'iteration {i}: loss {loss:.4f}')
 
     def save_weights(self, only_trainable=False, weight_file='weights.pth'):
         if self.model is None:
@@ -218,3 +263,10 @@ class TrainingLogger(object):
         
         torch.save(weight_dict, weights_path)
         log.info(f'Saved weights to {weights_path}')
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        """ automatically stop processes if used in a context manager """
+        pass        

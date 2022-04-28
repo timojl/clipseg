@@ -156,7 +156,7 @@ class FixedIntervalMetrics(BaseMetric):
             log.warning('classes were not provided, cannot compute mIoU')
         else:
             all_classes = set(int(c) for c in self.classes)
-            log.info(f'compute metrics for {len(all_classes)} classes')
+            # log.info(f'compute metrics for {len(all_classes)} classes')
 
         summed = {k: [sum([self.metrics[k][i][j] 
                            for i in range(len(self.metrics[k]))])
@@ -177,6 +177,9 @@ class FixedIntervalMetrics(BaseMetric):
 
 
         # Compute average precision
+
+        assert (np.array(summed['fp']) + np.array(summed['tp']) ).sum(), 'no predictions is made'
+
         # only consider values where a prediction is made
         precisions = [summed['tp'][j] / (1 + summed['tp'][j] + summed['fp'][j]) for j in range(len(self.threshold_values))
                       if summed['tp'][j] + summed['fp'][j] > 0]
@@ -198,12 +201,6 @@ class FixedIntervalMetrics(BaseMetric):
             for j in range(len(self.threshold_values))
         ]
         
-        if all_classes is not None:
-            # mean IoU
-            mean_ious = [np.mean([summed_by_cls['tp'][c][j] / (1 + summed_by_cls['tp'][c][j] + summed_by_cls['fp'][c][j] + summed_by_cls['fn'][c][j]) 
-                            for c in all_classes])
-                        for j in range(len(self.threshold_values))]
-
         index_0p5 = self.threshold_values.tolist().index(0.5)
         index_0p1 = self.threshold_values.tolist().index(0.1)
         index_0p2 = self.threshold_values.tolist().index(0.2)
@@ -212,7 +209,24 @@ class FixedIntervalMetrics(BaseMetric):
         if self.custom_threshold is not None:
             index_ct = self.threshold_values.tolist().index(self.custom_threshold)
 
-        print(f'took {time.time() - t_start:.1f}s')
+        if all_classes is not None:
+            # mean IoU
+            mean_ious = [np.mean([summed_by_cls['tp'][c][j] / (1 + summed_by_cls['tp'][c][j] + summed_by_cls['fp'][c][j] + summed_by_cls['fn'][c][j]) 
+                            for c in all_classes])
+                        for j in range(len(self.threshold_values))]
+
+            mean_iou_dict = {
+                'miou_best': max(mean_ious) if all_classes is not None else None,
+                'miou_0.5': mean_ious[index_0p5] if all_classes is not None else None,
+                'miou_0.1': mean_ious[index_0p1] if all_classes is not None else None,
+                'miou_0.2': mean_ious[index_0p2] if all_classes is not None else None,
+                'miou_0.3': mean_ious[index_0p3] if all_classes is not None else None,
+                'miou_best_t': self.threshold_values[np.argmax(mean_ious)],
+                'mean_iou_ct': mean_ious[index_ct] if all_classes is not None and self.custom_threshold is not None else None,
+                'mean_iou_scores': mean_ious,
+            }
+
+        print(f'metric computation on {(len(all_classes) if all_classes is not None else "no")} classes took {time.time() - t_start:.1f}s')
 
         return {
             'ap': ap,
@@ -226,12 +240,7 @@ class FixedIntervalMetrics(BaseMetric):
             'fgiou_best_t': self.threshold_values[np.argmax(fgiou_scores)],
 
             # mean iou
-            'miou_best': max(mean_ious) if all_classes is not None else None,
-            'miou_0.5': mean_ious[index_0p5] if all_classes is not None else None,
-            'miou_0.1': mean_ious[index_0p1] if all_classes is not None else None,
-            'miou_0.2': mean_ious[index_0p2] if all_classes is not None else None,
-            'miou_0.3': mean_ious[index_0p3] if all_classes is not None else None,
-            'miou_best_t': self.threshold_values[np.argmax(mean_ious)],
+
 
             # biniou
             'biniou_best': max(biniou_scores),
@@ -244,15 +253,16 @@ class FixedIntervalMetrics(BaseMetric):
             # custom threshold
             'fgiou_ct': fgiou_scores[index_ct] if self.custom_threshold is not None else None,
             'biniou_ct': biniou_scores[index_ct] if self.custom_threshold is not None else None,
-            'mean_iou_ct': mean_ious[index_0p1] if all_classes is not None and self.custom_threshold is not None else None,
+            'ct': self.custom_threshold,
 
             # statistics
             'fgiou_scores': fgiou_scores,
             'biniou_scores': biniou_scores,
             'precision_recall_curve': sorted(list(set(zip(recalls, precisions)))),
-            'mean_iou_scores': mean_ious,
             'summed_statistics': summed,
             'summed_by_cls_statistics': summed_by_cls,
+
+            **mean_iou_dict
         }
 
         # ('ap', 'best_fgiou', 'best_miou', 'fgiou0.5', 'fgiou0.1', 'mean_iou_0p5', 'mean_iou_0p1', 'best_biniou', 'biniou_0.5', 'fgiou_thresh'

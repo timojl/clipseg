@@ -1,5 +1,5 @@
 # Image Segmentation Using Text and Image Prompts
-This repository contains the code used in the paper "Image Segmentation Using Text and Image Prompts".
+This repository contains the code used in the paper ["Image Segmentation Using Text and Image Prompts"](https://arxiv.org/abs/2112.10003).
 
 <img src="overview.png" alt="drawing" height="200em"/>
 
@@ -44,9 +44,12 @@ git clone https://github.com/juhongm999/hsnet.git
 - [CLIPSeg-D64](https://github.com/timojl/clipseg/raw/master/weights/rd64-uni.pth) (4.1MB, without CLIP weights)
 - [CLIPSeg-D16](https://github.com/timojl/clipseg/raw/master/weights/rd16-uni.pth) (1.1MB, without CLIP weights)
 
-### Training
+### Training and Evaluation
 
-See the experiment folder for yaml definitions of the training configurations. The training code is in `experiment_setup.py`.
+To train use the `training.py` script with experiment file and experiment id parameters. E.g. `python training.py phrasecut.yaml 0` will train the first phrasecut experiment which is defined by the `configuration` and first `individual_configurations` parameters. Model weights will be written in `logs/`.
+
+For evaluation use `score.py`. E.g. `python score.py phrasecut.yaml 0 0` will train the first phrasecut experiment of `test_configuration` and the first configuration in `individual_configurations`.
+
 
 ### Usage of PFENet Wrappers
 
@@ -54,12 +57,11 @@ In order to use the dataset and model wrappers for PFENet, the PFENet repository
 `git clone https://github.com/Jia-Research-Lab/PFENet.git `
 
 ### Citation
-
 ```
 @article{lueddecke21
     title={Image Segmentation Using Text and Image Prompts},
     author={Timo Lüddecke and Alexander Ecker},
-    journal={...},
+    journal={arXiv preprint arXiv:2112.10003},
     year={2021}
 }
 ```

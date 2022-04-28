@@ -66,6 +66,7 @@ class PhraseCut(object):
         self.image_size = image_size
         self.with_visual = with_visual
         self.only_visual = only_visual
+        self.phrase_form = '{}'
         self.mask = mask
         self.aug_crop = aug_crop
         
@@ -125,7 +126,9 @@ class PhraseCut(object):
 
             elif remove_classes[0] == 'zs':
                 stop = remove_classes[1]
+                
                 from datasets.pascal_zeroshot import PASCAL_VOC_CLASSES_ZS
+
                 avoid = [c for class_set in PASCAL_VOC_CLASSES_ZS[:stop] for c in class_set]
                 print(avoid)
 
@@ -209,6 +212,7 @@ class PhraseCut(object):
 
         polys_phrase0 = img_ref_data['gt_Polygons'][j]
         phrase = img_ref_data['phrases'][j]
+        phrase = self.phrase_form.format(phrase)
 
         masks = []
         for polys in polys_phrase0:
@@ -247,6 +251,8 @@ class PhraseCut(object):
             img = self.aug_color(img)
 
         img = self.normalize(img)
+
+
 
         return img, seg, phrase
 
