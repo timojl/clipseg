@@ -3,7 +3,6 @@ import torch
 import json
 import torchvision
 from general_utils import get_from_repository
-from datasets.lvis_oneshot3 import blend_image_segmentation
 from general_utils import log
 from torchvision import transforms
 

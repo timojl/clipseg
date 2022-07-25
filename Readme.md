@@ -1,6 +1,8 @@
 # Image Segmentation Using Text and Image Prompts
 This repository contains the code used in the paper ["Image Segmentation Using Text and Image Prompts"](https://arxiv.org/abs/2112.10003).
 
+**The Paper has been accepted to CVPR 2022!**
+
 <img src="overview.png" alt="drawing" height="200em"/>
 
 The systems allows to create segmentation models without training based on:
@@ -41,6 +43,9 @@ git clone https://github.com/juhongm999/hsnet.git
 ```
 
 ### Weights
+
+The MIT license does not apply to these weights.
+
 - [CLIPSeg-D64](https://github.com/timojl/clipseg/raw/master/weights/rd64-uni.pth) (4.1MB, without CLIP weights)
 - [CLIPSeg-D16](https://github.com/timojl/clipseg/raw/master/weights/rd16-uni.pth) (1.1MB, without CLIP weights)
 
@@ -56,12 +61,20 @@ For evaluation use `score.py`. E.g. `python score.py phrasecut.yaml 0 0` will tr
 In order to use the dataset and model wrappers for PFENet, the PFENet repository needs to be cloned to the root folder.
 `git clone https://github.com/Jia-Research-Lab/PFENet.git `
 
+
+### License
+
+The source code files in this repository (excluding model weights) are released under MIT license.
+
 ### Citation
 ```
-@article{lueddecke21
-    title={Image Segmentation Using Text and Image Prompts},
-    author={Timo Lüddecke and Alexander Ecker},
-    journal={arXiv preprint arXiv:2112.10003},
-    year={2021}
+@InProceedings{lueddecke22_cvpr,
+    author    = {L\"uddecke, Timo and Ecker, Alexander},
+    title     = {Image Segmentation Using Text and Image Prompts},
+    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+    month     = {June},
+    year      = {2022},
+    pages     = {7086-7096}
 }
+
 ```
