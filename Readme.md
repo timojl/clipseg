@@ -11,7 +11,7 @@ The systems allows to create segmentation models without training based on:
 
 ### Quick Start
 
-In the `Quickstart.ipynb` notebook we provide the code for using a pre-trained CLIPSeg model.
+In the `Quickstart.ipynb` notebook we provide the code for using a pre-trained CLIPSeg model. If you run the notebook locally, make sure you downloaded the `rd64-uni.pth` weights, either manually or via git lfs extension.
 It can also be used interactively using [MyBinder](https://mybinder.org/v2/gh/timojl/clipseg/HEAD?labpath=Quickstart.ipynb)
 (please note that the VM does not use a GPU, thus inference takes a few seconds).
 
