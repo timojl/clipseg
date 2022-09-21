@@ -44,10 +44,12 @@ git clone https://github.com/juhongm999/hsnet.git
 
 ### Weights
 
-The MIT license does not apply to these weights.
+The MIT license does not apply to these weights. 
 
 - [CLIPSeg-D64](https://github.com/timojl/clipseg/raw/master/weights/rd64-uni.pth) (4.1MB, without CLIP weights)
 - [CLIPSeg-D16](https://github.com/timojl/clipseg/raw/master/weights/rd16-uni.pth) (1.1MB, without CLIP weights)
+
+In case the github LFS download does not work, please use [this link to our cloud storage](https://owncloud.gwdg.de/index.php/s/ioHbRzFx6th32hn) to obtain the weights.
 
 ### Training and Evaluation
 
