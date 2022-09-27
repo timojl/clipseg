@@ -338,11 +338,11 @@ class CLIPDensePredT(CLIPDenseBase):
             trans_conv_ks = (trans_conv, trans_conv)
 
         if not complex_trans_conv:
-            self.trans_conv = nn.ConvTranspose2d(reduce_dim, 1, self.trans_conv_ks, stride=self.trans_conv_ks)
+            self.trans_conv = nn.ConvTranspose2d(reduce_dim, 1, trans_conv_ks, stride=trans_conv_ks)
         else:
-            assert self.trans_conv_ks[0] == self.trans_conv_ks[1]
+            assert trans_conv_ks[0] == trans_conv_ks[1]
 
-            tp_kernels = (self.trans_conv_ks[0] // 4, self.trans_conv_ks[0] // 4)
+            tp_kernels = (trans_conv_ks[0] // 4, trans_conv_ks[0] // 4)
 
             self.trans_conv = nn.Sequential(
                 nn.Conv2d(reduce_dim, reduce_dim, kernel_size=3, padding=1),
