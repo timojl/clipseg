@@ -6,32 +6,6 @@ from torch.nn import functional as nnf
 from torch.nn.modules.activation import ReLU
 
 
-def precompute_clip_vectors():
-
-    from trails.initialization import init_dataset
-    lvis = init_dataset('LVIS_OneShot3', split='train', mask='text_label', image_size=224, aug=1, normalize=True, 
-                                       reduce_factor=None, add_bar=False, negative_prob=0.5)
-
-    all_names = list(lvis.category_names.values())
-
-    import clip
-    from models.clip_prompts import imagenet_templates
-    clip_model = clip.load("ViT-B/32", device='cuda', jit=False)[0]
-    prompt_vectors = {}
-    for name in all_names[:100]:
-        with torch.no_grad():
-            conditionals = [t.format(name).replace('_', ' ') for t in imagenet_templates]
-            text_tokens = clip.tokenize(conditionals).cuda()
-            cond = clip_model.encode_text(text_tokens).cpu()
-            
-            for cond, vec in zip(conditionals, cond):
-                prompt_vectors[cond] = vec.cpu()
-
-    import pickle
-
-    pickle.dump(prompt_vectors, open('precomputed_prompt_vectors.pickle', 'wb'))
-
-
 def get_prompt_list(prompt):
     if prompt == 'plain':
         return ['{}']    
