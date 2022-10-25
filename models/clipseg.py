@@ -17,9 +17,6 @@ def get_prompt_list(prompt):
         return ['a photo of a {}.', 'a photograph of a {}.', 'an image of a {}.', '{}.',
                             'a cropped photo of a {}.', 'a good photo of a {}.', 'a photo of one {}.',
                             'a bad photo of a {}.', 'a photo of the {}.']
-    elif prompt == 'shuffle_clip':
-        from models.clip_prompts import imagenet_templates
-        return imagenet_templates
     else:
         raise ValueError('Invalid value for prompt')        
 
