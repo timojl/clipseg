@@ -1,6 +1,7 @@
 # Image Segmentation Using Text and Image Prompts
 This repository contains the code used in the paper ["Image Segmentation Using Text and Image Prompts"](https://arxiv.org/abs/2112.10003).
 
+**November 2022:** CLIPSeg has been integrated into the [HuggingFace Transformers library](https://huggingface.co/docs/transformers/main/en/model_doc/clipseg). Thank you, [NielsRogge](https://github.com/NielsRogge)!  
 **September 2022:** We released new weights for fine-grained predictions (see below for details).  
 **March 2022:** The Paper has been accepted to CVPR 2022!
 
