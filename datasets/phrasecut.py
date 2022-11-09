@@ -14,6 +14,53 @@ from general_utils import get_from_repository
 
 from skimage.draw import polygon2mask
 
+PASCAL_SYNSETS = ['person.n.01', 'bird.n.01', 'cat.n.01', 'cattle.n.01', 'dog.n.01', 'horse.n.01', 'sheep.n.01', 'aeroplane.n.01', 'bicycle.n.01', 
+                    'boat.n.01', 'bus.n.01', 'car.n.01', 'motorcycle.n.01', 'train.n.01', 'bottle.n.01', 'chair.n.01', 'kitchen_table.n.01',  
+                    'breakfast_table.n.01', 'trestle_table.n.01','pot_plant.n.01', 'sofa.n.01', 'television.n.03']
+
+PASCAL_5I_SYNSETS_ORDERED = [
+    'aeroplane.n.01', 'bicycle.n.01',  'bird.n.01', 'vessel.n.02', 'bottle.n.01', 'bus.n.01', 'car.n.01', 
+     'cat.n.01',  'chair.n.01',  'cattle.n.01',   'table.n.02',  'dog.n.01', 'horse.n.01',  'motorcycle.n.01', 
+      'person.n.01', 'pot_plant.n.01', 'sheep.n.01',  'sofa.n.01', 'train.n.01', 'television.n.03']
+
+# Pascal-5i classes
+PASCAL_5I_CLASS_IDS = {
+    3: list(range(1, 16)),
+    2: list(range(1, 11)) + list(range(16, 21)),
+    1: list(range(1, 6)) + list(range(11, 21)),
+    0: list(range(6, 21))
+}
+
+
+def traverse_lemmas(synset):
+    """ list of all lemma names of hypernyms """
+
+    out = synset.lemma_names()
+    for h in synset.hypernyms():
+        out += traverse_lemmas(h)
+
+    return out
+
+
+def traverse_lemmas_hypo(synset, max_depth=None, depth=0):
+    """ list of all lemma names of hypernyms """
+
+    if synset.name() == 'person.n.01':
+        return ['person', 'human', 'man', 'woman', 'toddler', 'baby', 'body', 'child', 'infant'] 
+
+    out = [l.name() for l in synset.lemmas()]
+
+    # print(' '*depth, synset.name())
+
+    if max_depth is not None and depth >= max_depth:
+        return out
+
+    # print(' '*(3*depth), out)
+    for h in synset.hyponyms():
+        out += traverse_lemmas_hypo(h, max_depth, depth+1)
+
+    return out
+
 
 
 def random_crop_slices(origin_size, target_size):
@@ -27,7 +74,6 @@ def random_crop_slices(origin_size, target_size):
 
 
 def find_crop(seg, image_size, iterations=1000, min_frac=None, best_of=None):
-
 
     best_crops = []
     best_crop_not_ok = float('-inf'), None, None
@@ -119,7 +165,6 @@ class PhraseCut(object):
         if remove_classes is None:
             pass
         else:
-            from datasets.generate_lvis_oneshot import PASCAL_SYNSETS, traverse_lemmas, traverse_lemmas_hypo
             from nltk.corpus import wordnet
 
             print('remove pascal classes...')
@@ -129,7 +174,7 @@ class PhraseCut(object):
 
             if remove_classes[0] == 'pas5i':
                 subset_id = remove_classes[1]
-                from datasets.generate_lvis_oneshot import PASCAL_5I_SYNSETS_ORDERED, PASCAL_5I_CLASS_IDS
+
                 avoid = [PASCAL_5I_SYNSETS_ORDERED[i] for i in range(20) if i+1 not in PASCAL_5I_CLASS_IDS[subset_id]]
       
 
