@@ -2,7 +2,7 @@ from os.path import expanduser
 import torch
 import json
 from general_utils import get_from_repository
-from datasets.lvis_oneshot3 import blend_image_segmentation
+from datasets.utils import blend_image_segmentation
 from general_utils import log
 
 PASCAL_CLASSES = {a['id']: a['synonyms'] for a in json.load(open('datasets/pascal_classes.json'))}
