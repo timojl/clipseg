@@ -1,0 +1,61 @@
+configuration:
+  batch_size: 64
+  optimizer: torch.optim.AdamW
+
+  lr: 0.001
+
+  # val_metric_class: metrics.BinaryIoU
+  # use_val_metric: BIoU_fg
+
+  trainer: experiment_setup.train_loop
+  scorer: experiment_setup.score
+  model: models.clipseg.CLIPDensePredT
+
+  lr_scheduler: cosine
+  T_max: 20000
+  eta_min: 0.0001
+
+  max_iterations: 20000    #  <-##########################################
+  val_interval: null
+
+  # dataset
+  dataset: datasets.phrasecut.PhraseCut   # <-----------------
+  split_mode: pascal_test
+  split: train
+  image_size: 352
+  normalize: True
+  pre_crop_image_size: [sample, 1, 1.5]
+  aug: 1new
+
+  # new, not 
+  with_visual: True
+
+  # general
+  mix: False # <-----------------
+  prompt: shuffle+
+  norm_cond: True
+  mix_text_min: 0.0
+  
+  # model
+  out: 1
+  extract_layers: [3, 7, 9]
+  reduce_dim: 64
+  depth: 3
+  fix_shift: False            #  <-##########################################
+
+  loss: torch.nn.functional.binary_cross_entropy_with_logits
+  amp: True
+
+test_configuration_common:
+  normalize: True
+  image_size: 352
+  batch_size: 32
+  # max_iterations: 150
+  
+test_configuration: 
+  test_dataset: pascal_zs
+
+columns: [name, pas_zs_seen, pas_zs_unseen, duration, date]
+
+- {name: rd64-uni-zs5, version: 'ViT-B/16', reduce_dim: 64, with_visual: True, remove_classes: [zs, 5], negative_prob: 0.2, mix: True, mix_text_max: 0.5, mask: text_and_crop_blur_highlight352}
+- {name: rd64-uni-zs2, version: 'ViT-B/16', reduce_dim: 64, with_visual: True, remove_classes: [zs, 2], negative_prob: 0.2, mix: True, mix_text_max: 0.5, mask: text_and_crop_blur_highlight352}
