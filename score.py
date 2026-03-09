@@ -19,6 +19,41 @@ from metrics import FixedIntervalMetrics
 from general_utils import load_model, log, score_config_from_cli_args, AttributeDict, get_attribute, filter_args
 
 
+def resolve_device(config):
+    requested = config.device if 'device' in config and config.device is not None else None
+    if requested is None:
+        return torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    device = torch.device(requested)
+    if device.type == 'cuda' and not torch.cuda.is_available():
+        raise RuntimeError('CUDA was requested but is not available.')
+    return device
+
+
+def to_device(values, device):
+    return [x.to(device, non_blocking=device.type == 'cuda') if isinstance(x, torch.Tensor) else x for x in values]
+
+
+def make_loader_kwargs(config, shuffle):
+    num_workers = int(config.num_workers) if 'num_workers' in config and config.num_workers is not None else 0
+    pin_memory = bool(config.pin_memory) if 'pin_memory' in config and config.pin_memory is not None else False
+    persistent_workers = bool(config.persistent_workers) if 'persistent_workers' in config and config.persistent_workers is not None else False
+
+    kwargs = {
+        'shuffle': shuffle,
+        'num_workers': num_workers,
+        'drop_last': False,
+    }
+
+    if pin_memory and torch.cuda.is_available():
+        kwargs['pin_memory'] = True
+
+    if num_workers > 0:
+        kwargs['persistent_workers'] = persistent_workers
+
+    return kwargs
+
+
 DATASET_CACHE = dict()
 
 def load_model(checkpoint_id, weights_file=None, strict=True, model_args='from_config', with_config=False, ignore_weights=False):
@@ -59,8 +94,9 @@ def load_model(checkpoint_id, weights_file=None, strict=True, model_args='from_c
 def compute_shift2(model, datasets, seed=123, repetitions=1):
     """ computes shift """
     
+    device = next(model.parameters()).device
     model.eval()
-    model.cuda()
+    model.to(device)
 
     import random
     random.seed(seed)
@@ -77,8 +113,8 @@ def compute_shift2(model, datasets, seed=123, repetitions=1):
             i, losses = 0, []
             for i_all, (data_x, data_y) in enumerate(loader):
 
-                data_x = [v.cuda(non_blocking=True) if v is not None else v for v in data_x]
-                data_y = [v.cuda(non_blocking=True) if v is not None else v for v in data_y]
+                data_x = to_device(data_x, device)
+                data_y = to_device(data_y, device)
 
                 pred, = model(data_x[0], data_x[1], data_x[2])
                 preds += [pred.detach()]
@@ -133,6 +169,7 @@ def score(config, train_checkpoint_id, train_config):
 
     # use training dataset and loss
     train_config = AttributeDict(json.load(open(f'logs/{train_checkpoint_id}/config.json')))
+    device = resolve_device(config if 'device' in config else train_config)
 
     cp_str = f'_{config.iteration_cp}' if config.iteration_cp is not None else ''
 
@@ -149,13 +186,12 @@ def score(config, train_checkpoint_id, train_config):
                            
 
     model.eval()
-    model.cuda()
+    model.to(device)
 
     metric_args = dict()
 
     if 'threshold' in config:
-        if config.metric.split('.')[-1] == 'SkLearnMetrics':
-            metric_args['threshold'] = config.threshold
+        metric_args['threshold'] = config.threshold
 
     if 'resize_to' in config:
         metric_args['resize_to'] = config.resize_to
@@ -165,6 +201,31 @@ def score(config, train_checkpoint_id, train_config):
 
     if 'custom_threshold' in config:
         metric_args['custom_threshold'] = config.custom_threshold     
+
+    if config.test_dataset == 'disease':
+        dataset_cls = get_attribute(train_config.dataset)
+        dataset_args = {k: train_config[k] for k in train_config.keys()}
+        dataset_args.update({k: config[k] for k in config.keys()})
+        _, dataset_args, _ = filter_args(dataset_args, inspect.signature(dataset_cls).parameters)
+
+        dataset = dataset_cls(**dataset_args)
+        loader = DataLoader(dataset, batch_size=config.batch_size, **make_loader_kwargs(config, shuffle=False))
+        metric = get_attribute(config.metric)(**metric_args)
+
+        with torch.no_grad():
+            for i_all, (data_x, data_y) in enumerate(loader):
+                data_x = to_device(data_x, device)
+                data_y = to_device(data_y, device)
+
+                pred, _, _, _ = model(data_x[0], data_x[1], return_features=True)
+                metric.add([pred], data_y)
+
+                if config.max_iterations and (i_all + 1) >= config.max_iterations:
+                    break
+
+        key_prefix = config['name'] if 'name' in config else 'disease'
+        return {key_prefix: metric.scores()}
+
 
     if config.test_dataset == 'pascal':
         

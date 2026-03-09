@@ -54,6 +54,22 @@ def _clean_prompt(conversations):
     return prompt
 
 
+def _extract_class_name(sample):
+    conversations = sample.get('conversations', [])
+    if len(conversations) > 1:
+        answer = conversations[1].get('value', '')
+        marker = 'symptoms of '
+        if marker in answer:
+            return answer.split(marker, 1)[1].split('.', 1)[0].strip()
+
+    prompt = _clean_prompt(conversations).lower()
+    prefix = 'segment '
+    if prompt.startswith(prefix):
+        return prompt[len(prefix):].strip()
+
+    return sample['id'].rsplit('_', 1)[0].replace('_', ' ')
+
+
 class DiseasePromptSegmentation(object):
 
     def __init__(self, split, dataset_root=None, image_size=352, normalize=True, limit_samples=None):
@@ -69,6 +85,16 @@ class DiseasePromptSegmentation(object):
             mean=[0.485, 0.456, 0.406],
             std=[0.229, 0.224, 0.225],
         ) if normalize else None
+
+        all_class_names = set()
+        for filename in {'train.json', 'test.json'}:
+            annotation_path = self.dataset_root / filename
+            if annotation_path.is_file():
+                with open(annotation_path, 'r', encoding='utf-8') as handle:
+                    all_class_names.update(_extract_class_name(sample) for sample in json.load(handle))
+
+        self.class_names = sorted(all_class_names)
+        self.class_to_idx = {name: idx for idx, name in enumerate(self.class_names)}
 
         annotation_path = self.dataset_root / split_map[split]
         with open(annotation_path, 'r', encoding='utf-8') as handle:
@@ -110,5 +136,6 @@ class DiseasePromptSegmentation(object):
         prompt = _clean_prompt(sample.get('conversations', []))
         image = self._load_image(sample['image'])
         mask = self._load_mask(sample['masks'][0])
+        class_idx = self.class_to_idx[_extract_class_name(sample)]
 
-        return (image, prompt), (mask, torch.zeros(0), index)
+        return (image, prompt), (mask, torch.zeros(0), class_idx)

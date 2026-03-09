@@ -38,3 +38,18 @@ configuration:
 individual_configurations:
   - {name: disease-smoke, max_iterations: 5, batch_size: 2, limit_samples: 16}
   - {name: disease-rd64, max_iterations: 10000, batch_size: 4}
+
+test_configuration_common:
+  batch_size: 4
+  test_dataset: disease
+  metric: metrics.DiseaseSegmentationMetrics
+  sigmoid: True
+  threshold: 0.5
+  split: test
+  device: cuda
+  num_workers: 0
+  pin_memory: True
+  persistent_workers: False
+
+test_configuration:
+  - {name: disease-test}

@@ -269,3 +269,71 @@ class FixedIntervalMetrics(BaseMetric):
 
         # return ap, best_fgiou, best_mean_iou, iou_0p5, iou_0p1, mean_iou_0p5, mean_iou_0p1, best_biniou, biniou0p5, best_fgiou_thresh, {'summed': summed, 'summed_by_cls': summed_by_cls}
 
+
+
+
+def _safe_div(numerator, denominator):
+    return float(numerator) / float(denominator) if denominator else 0.0
+
+
+class DiseaseSegmentationMetrics(BaseMetric):
+
+    def __init__(self, threshold=0.5, sigmoid=True, resize_pred=True):
+        super().__init__(('IoU', 'Dice', 'Recall', 'mIoU', 'mACC'))
+        self.threshold = threshold
+        self.sigmoid = sigmoid
+        self.resize_pred = resize_pred
+        self.global_stats = dict(tp=0, fp=0, fn=0, tn=0)
+        self.class_stats = defaultdict(lambda: dict(tp=0, fp=0, fn=0, tn=0))
+
+    def add(self, predictions, ground_truth):
+        pred_batch = predictions[self._pred_index].detach().cpu()
+        gt_batch = ground_truth[self._gt_index].cpu()
+        cls_batch = ground_truth[2] if len(ground_truth) > 2 else [None] * len(pred_batch)
+
+        if self.sigmoid:
+            pred_batch = torch.sigmoid(pred_batch)
+
+        if isinstance(cls_batch, torch.Tensor):
+            cls_batch = cls_batch.cpu().numpy().tolist()
+
+        for pred, gt, cls in zip(pred_batch, gt_batch, cls_batch):
+            if self.resize_pred:
+                pred = nnf.interpolate(pred.unsqueeze(0).float(), size=gt.size()[-2:], mode='bilinear', align_corners=True)[0]
+
+            pred_mask = (pred > self.threshold).float()
+            gt_mask = (gt > 0.5).float()
+
+            tp = int((pred_mask * gt_mask).sum().item())
+            fp = int((pred_mask * (1 - gt_mask)).sum().item())
+            fn = int(((1 - pred_mask) * gt_mask).sum().item())
+            tn = int((((1 - pred_mask) * (1 - gt_mask))).sum().item())
+
+            for key, value in [('tp', tp), ('fp', fp), ('fn', fn), ('tn', tn)]:
+                self.global_stats[key] += value
+                if cls is not None:
+                    self.class_stats[int(cls)][key] += value
+
+    def value(self):
+        tp = self.global_stats['tp']
+        fp = self.global_stats['fp']
+        fn = self.global_stats['fn']
+        tn = self.global_stats['tn']
+
+        iou = _safe_div(tp, tp + fp + fn)
+        dice = _safe_div(2 * tp, 2 * tp + fp + fn)
+        recall = _safe_div(tp, tp + fn)
+
+        per_class_iou = []
+        per_class_acc = []
+        for stats in self.class_stats.values():
+            per_class_iou.append(_safe_div(stats['tp'], stats['tp'] + stats['fp'] + stats['fn']))
+            per_class_acc.append(_safe_div(stats['tp'] + stats['tn'], stats['tp'] + stats['fp'] + stats['fn'] + stats['tn']))
+
+        return {
+            'IoU': iou,
+            'Dice': dice,
+            'Recall': recall,
+            'mIoU': float(np.mean(per_class_iou)) if per_class_iou else 0.0,
+            'mACC': float(np.mean(per_class_acc)) if per_class_acc else 0.0,
+        }
