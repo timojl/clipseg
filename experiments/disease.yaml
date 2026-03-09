@@ -1,0 +1,40 @@
+configuration:
+  batch_size: 4
+  optimizer: torch.optim.AdamW
+  lr: 0.001
+
+  model: models.clipseg.CLIPDensePredT
+
+  lr_scheduler: cosine
+  T_max: 10000
+  eta_min: 0.0001
+
+  max_iterations: 10000
+  val_interval: null
+
+  dataset: datasets.disease_prompt_seg.DiseasePromptSegmentation
+  split: train
+  dataset_root: null
+  image_size: 352
+  normalize: True
+  limit_samples: null
+
+  mix: False
+  prompt: fixed
+
+  out: 1
+  version: 'ViT-B/16'
+  extract_layers: [3, 7, 9]
+  reduce_dim: 64
+  depth: 3
+
+  loss: torch.nn.functional.binary_cross_entropy_with_logits
+  amp: True
+  device: cuda
+  num_workers: 0
+  pin_memory: True
+  persistent_workers: False
+
+individual_configurations:
+  - {name: disease-smoke, max_iterations: 5, batch_size: 2, limit_samples: 16}
+  - {name: disease-rd64, max_iterations: 10000, batch_size: 4}

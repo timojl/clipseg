@@ -1,0 +1,21 @@
+name: clipseg-win-gpu
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy
+  - scipy
+  - matplotlib-base
+  - pillow
+  - pyyaml
+  - ftfy
+  - regex
+  - tqdm
+  - pip
+  - pytorch=2.5.1
+  - torchvision=0.20.1
+  - pytorch-cuda=12.1
+  - pip:
+    - git+https://github.com/openai/CLIP.git
