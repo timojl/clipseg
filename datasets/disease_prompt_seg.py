@@ -1,5 +1,6 @@
 import json
 import os
+import random
 from pathlib import Path
 
 import numpy as np
@@ -7,6 +8,15 @@ import torch
 from PIL import Image
 from torch.nn import functional as nnf
 from torchvision import transforms
+
+PROMPT_CANDIDATES = (
+    'the diseased region',
+    'the lesion region',
+    'the infected area',
+    'the symptomatic region',
+    'the lesion on the leaf',
+    'the lesion on the fruit surface',
+)
 
 
 def _resolve_dataset_root(dataset_root):
@@ -40,18 +50,8 @@ def _resolve_dataset_root(dataset_root):
     )
 
 
-def _clean_prompt(conversations):
-    if not conversations:
-        raise ValueError('Sample is missing conversations.')
-
-    prompt = conversations[0].get('value', '').strip()
-    prompt = prompt.replace('<image>\n', '', 1).strip()
-    prompt = prompt.replace('<image>', '', 1).strip()
-
-    if not prompt:
-        raise ValueError('Sample prompt is empty after cleanup.')
-
-    return prompt
+def _sample_prompt():
+    return random.choice(PROMPT_CANDIDATES)
 
 
 def _extract_class_name(sample):
@@ -61,11 +61,6 @@ def _extract_class_name(sample):
         marker = 'symptoms of '
         if marker in answer:
             return answer.split(marker, 1)[1].split('.', 1)[0].strip()
-
-    prompt = _clean_prompt(conversations).lower()
-    prefix = 'segment '
-    if prompt.startswith(prefix):
-        return prompt[len(prefix):].strip()
 
     return sample['id'].rsplit('_', 1)[0].replace('_', ' ')
 
@@ -133,7 +128,7 @@ class DiseasePromptSegmentation(object):
 
     def __getitem__(self, index):
         sample = self.samples[index]
-        prompt = _clean_prompt(sample.get('conversations', []))
+        prompt = _sample_prompt()
         image = self._load_image(sample['image'])
         mask = self._load_mask(sample['masks'][0])
         class_idx = self.class_to_idx[_extract_class_name(sample)]
